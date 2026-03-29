@@ -14,7 +14,7 @@ A tiny [pi](https://github.com/badlogic/pi-mono) extension that adds a slash com
 Install it directly from GitHub with pi:
 
 ```bash
-pi install git:github.com/fitchmultz/pi-copy-user-message
+pi install https://github.com/fitchmultz/pi-copy-user-message
 ```
 
 Then reload pi from inside the app with:
@@ -23,10 +23,10 @@ Then reload pi from inside the app with:
 /reload
 ```
 
-If you prefer a project-local install, keep the file at:
+If you prefer to load it directly from a local checkout during development, you can point pi at the package entrypoint:
 
-```text
-.pi/extensions/copy-user-message.ts
+```bash
+pi -e ./extensions/copy-user-message.ts
 ```
 
 ## Usage
@@ -64,5 +64,6 @@ The test covers:
 
 ## Files
 
-- `.pi/extensions/copy-user-message.ts` — extension implementation
+- `extensions/copy-user-message.ts` — publishable extension implementation
+- `.pi/extensions/copy-user-message.ts` — thin project-local wrapper for auto-discovery in this repo
 - `tests/copy-user-message.test.ts` — regression test

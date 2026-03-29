@@ -7,7 +7,7 @@
  */
 import assert from "node:assert/strict";
 
-import { getMostRecentUserMessageText } from "../.pi/extensions/copy-user-message.js";
+import { getMostRecentUserMessageText } from "../extensions/copy-user-message.js";
 
 const textResult = getMostRecentUserMessageText([
 	{ type: "message", message: { role: "user", content: "older text" } } as any,
