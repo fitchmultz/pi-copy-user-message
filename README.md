@@ -11,7 +11,13 @@ A tiny [pi](https://github.com/badlogic/pi-mono) extension that adds a slash com
 
 ## Install
 
-Install it directly from GitHub with pi:
+Install it from npm with pi:
+
+```bash
+pi install npm:pi-copy-user-message
+```
+
+Or install it directly from GitHub with pi:
 
 ```bash
 pi install https://github.com/fitchmultz/pi-copy-user-message
