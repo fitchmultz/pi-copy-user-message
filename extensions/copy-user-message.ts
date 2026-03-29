@@ -5,7 +5,11 @@
  * Usage: Loaded by pi as an extension package; invoke with /copy-user.
  * Invariants/Assumptions: Operates on the current branch only; copies text content only; never falls back to an older user message when the newest one has no text.
  */
-import { copyToClipboard, type ExtensionAPI, type ExtensionCommandContext, type SessionEntry } from "@mariozechner/pi-coding-agent";
+import { execSync, spawn } from "node:child_process";
+
+type ExtensionAPI = import("@mariozechner/pi-coding-agent").ExtensionAPI;
+type ExtensionCommandContext = import("@mariozechner/pi-coding-agent").ExtensionCommandContext;
+type SessionEntry = import("@mariozechner/pi-coding-agent").SessionEntry;
 
 type TextBlock = {
 	type?: string;
@@ -63,6 +67,70 @@ export const getMostRecentUserMessageText = (entries: SessionEntry[]): MostRecen
 	return { kind: "no-user-message" };
 };
 
+const emitOsc52Clipboard = (text: string) => {
+	const encoded = Buffer.from(text).toString("base64");
+	process.stdout.write(`\x1b]52;c;${encoded}\x07`);
+};
+
+const copyToX11Clipboard = (text: string) => {
+	try {
+		execSync("xclip -selection clipboard", { input: text, stdio: ["pipe", "ignore", "ignore"], timeout: 5000 });
+	} catch {
+		execSync("xsel --clipboard --input", { input: text, stdio: ["pipe", "ignore", "ignore"], timeout: 5000 });
+	}
+};
+
+const copyTextSafely = async (text: string) => {
+	emitOsc52Clipboard(text);
+
+	const options = { input: text, timeout: 5000, stdio: ["pipe", "ignore", "ignore"] as const };
+	try {
+		if (process.platform === "darwin") {
+			execSync("pbcopy", options);
+			return;
+		}
+
+		if (process.platform === "win32") {
+			execSync("clip", options);
+			return;
+		}
+
+		if (process.env.TERMUX_VERSION) {
+			try {
+				execSync("termux-clipboard-set", options);
+				return;
+			} catch {
+				// Fall through to Wayland/X11 tools.
+			}
+		}
+
+		const hasWaylandDisplay = Boolean(process.env.WAYLAND_DISPLAY);
+		const hasX11Display = Boolean(process.env.DISPLAY);
+		if (hasWaylandDisplay) {
+			try {
+				execSync("which wl-copy", { stdio: "ignore" });
+				const proc = spawn("wl-copy", [], { stdio: ["pipe", "ignore", "ignore"] });
+				proc.stdin.on("error", () => undefined);
+				proc.stdin.write(text);
+				proc.stdin.end();
+				proc.unref();
+				return;
+			} catch {
+				if (hasX11Display) {
+					copyToX11Clipboard(text);
+					return;
+				}
+			}
+		}
+
+		if (hasX11Display) {
+			copyToX11Clipboard(text);
+		}
+	} catch {
+		// Ignore platform clipboard failures. OSC 52 was already emitted above.
+	}
+};
+
 const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
 	const result = getMostRecentUserMessageText(ctx.sessionManager.getBranch());
 
@@ -77,7 +145,7 @@ const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
 	}
 
 	try {
-		await copyToClipboard(result.text);
+		await copyTextSafely(result.text);
 		ctx.ui.notify("Copied text from the most recent user message to clipboard.", "info");
 	} catch (error) {
 		ctx.ui.notify(
