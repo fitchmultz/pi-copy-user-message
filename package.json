@@ -1,0 +1,14 @@
+{
+  "name": "pi-copy-user-message",
+  "private": true,
+  "version": "1.0.0",
+  "description": "pi extension for copying the most recent user message to the clipboard",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": ["./.pi/extensions/copy-user-message.ts"]
+  }
+}
