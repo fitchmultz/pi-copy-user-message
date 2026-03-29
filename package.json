@@ -1,6 +1,6 @@
 {
   "name": "pi-copy-user-message",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "pi extension for copying the most recent user message to the clipboard",
   "type": "module",
   "keywords": ["pi-package", "pi", "pi-extension", "extension"],
