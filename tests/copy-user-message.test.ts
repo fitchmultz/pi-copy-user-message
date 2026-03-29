@@ -1,3 +1,10 @@
+/**
+ * Purpose: Regress the copy-user extension's most-recent-message selection logic.
+ * Responsibilities: Verify the helper returns text only for the newest user message and never falls back to older messages.
+ * Scope: Focused assertions for text, image-only, whitespace-only, and no-user-message cases.
+ * Usage: Compiled and run as a lightweight TypeScript test harness during local verification.
+ * Invariants/Assumptions: Imports the extension helper from the compiled extension module and asserts stable result shapes.
+ */
 import assert from "node:assert/strict";
 
 import { getMostRecentUserMessageText } from "../.pi/extensions/copy-user-message.js";

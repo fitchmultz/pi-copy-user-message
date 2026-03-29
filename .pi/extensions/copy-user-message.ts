@@ -1,3 +1,10 @@
+/**
+ * Purpose: Provide a pi slash command for copying the most recent user message text.
+ * Responsibilities: Inspect the current session branch, extract text from the latest user message, and copy it to the system clipboard.
+ * Scope: Single extension command implementation and a small pure helper used by regression tests.
+ * Usage: Loaded by pi as an extension package; invoke with /copy-user.
+ * Invariants/Assumptions: Operates on the current branch only; copies text content only; never falls back to an older user message when the newest one has no text.
+ */
 import { copyToClipboard, type ExtensionAPI, type ExtensionCommandContext, type SessionEntry } from "@mariozechner/pi-coding-agent";
 
 type TextBlock = {
