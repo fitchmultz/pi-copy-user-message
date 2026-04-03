@@ -5,11 +5,9 @@
  * Usage: Loaded by pi as an extension package; invoke with /copy-user.
  * Invariants/Assumptions: Operates on the current branch only; copies text content only; never falls back to an older user message when the newest one has no text.
  */
-import { execSync, spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 
-type ExtensionAPI = import("@mariozechner/pi-coding-agent").ExtensionAPI;
-type ExtensionCommandContext = import("@mariozechner/pi-coding-agent").ExtensionCommandContext;
-type SessionEntry = import("@mariozechner/pi-coding-agent").SessionEntry;
+import type { ExtensionAPI, ExtensionCommandContext, SessionEntry } from "@mariozechner/pi-coding-agent";
 
 type TextBlock = {
 	type?: string;
@@ -20,6 +18,13 @@ type MostRecentUserMessageTextResult =
 	| { kind: "no-user-message" }
 	| { kind: "no-text" }
 	| { kind: "text"; text: string };
+
+type ClipboardCopyResult = {
+	usedOsc52: boolean;
+	usedSystemClipboard: boolean;
+};
+
+const CLIPBOARD_COMMAND_TIMEOUT_MS = 5000;
 
 const extractText = (content: unknown): string | undefined => {
 	if (typeof content === "string") {
@@ -67,68 +72,108 @@ export const getMostRecentUserMessageText = (entries: SessionEntry[]): MostRecen
 	return { kind: "no-user-message" };
 };
 
-const emitOsc52Clipboard = (text: string) => {
-	const encoded = Buffer.from(text).toString("base64");
+const canUseOsc52Clipboard = (ctx: Pick<ExtensionCommandContext, "hasUI">) =>
+	ctx.hasUI && Boolean(process.stdout.isTTY) && process.env.TERM !== "dumb";
+
+const emitOsc52Clipboard = (text: string, ctx: Pick<ExtensionCommandContext, "hasUI">) => {
+	if (!canUseOsc52Clipboard(ctx)) {
+		return false;
+	}
+
+	const encoded = Buffer.from(text, "utf8").toString("base64");
 	process.stdout.write(`\x1b]52;c;${encoded}\x07`);
+	return true;
+};
+
+const runClipboardCommand = (command: string, args: string[], text: string) => {
+	execFileSync(command, args, {
+		input: text,
+		stdio: ["pipe", "ignore", "ignore"],
+		timeout: CLIPBOARD_COMMAND_TIMEOUT_MS,
+	});
+	return true;
 };
 
 const copyToX11Clipboard = (text: string) => {
 	try {
-		execSync("xclip -selection clipboard", { input: text, stdio: ["pipe", "ignore", "ignore"], timeout: 5000 });
+		return runClipboardCommand("xclip", ["-selection", "clipboard"], text);
 	} catch {
-		execSync("xsel --clipboard --input", { input: text, stdio: ["pipe", "ignore", "ignore"], timeout: 5000 });
+		return runClipboardCommand("xsel", ["--clipboard", "--input"], text);
 	}
 };
 
-const copyTextSafely = async (text: string) => {
-	emitOsc52Clipboard(text);
+const copyToWaylandClipboard = (text: string) =>
+	new Promise<boolean>((resolve, reject) => {
+		const proc = spawn("wl-copy", [], { stdio: ["pipe", "ignore", "ignore"] });
+		let settled = false;
 
-	const options = { input: text, timeout: 5000, stdio: ["pipe", "ignore", "ignore"] as const };
+		const succeed = () => {
+			if (settled) {
+				return;
+			}
+
+			settled = true;
+			proc.unref();
+			resolve(true);
+		};
+
+		const fail = (error: Error) => {
+			if (settled) {
+				return;
+			}
+
+			settled = true;
+			reject(error);
+		};
+
+		proc.once("error", fail);
+		proc.stdin.on("error", fail);
+		proc.stdin.end(text, succeed);
+	});
+
+const copyTextSafely = async (
+	text: string,
+	ctx: Pick<ExtensionCommandContext, "hasUI">,
+): Promise<ClipboardCopyResult> => {
+	const usedOsc52 = emitOsc52Clipboard(text, ctx);
+	let usedSystemClipboard = false;
+
 	try {
 		if (process.platform === "darwin") {
-			execSync("pbcopy", options);
-			return;
-		}
-
-		if (process.platform === "win32") {
-			execSync("clip", options);
-			return;
-		}
-
-		if (process.env.TERMUX_VERSION) {
+			usedSystemClipboard = runClipboardCommand("pbcopy", [], text);
+		} else if (process.platform === "win32") {
+			usedSystemClipboard = runClipboardCommand("clip", [], text);
+		} else if (process.env.TERMUX_VERSION) {
 			try {
-				execSync("termux-clipboard-set", options);
-				return;
+				usedSystemClipboard = runClipboardCommand("termux-clipboard-set", [], text);
 			} catch {
 				// Fall through to Wayland/X11 tools.
 			}
-		}
+		} else {
+			const hasWaylandDisplay = Boolean(process.env.WAYLAND_DISPLAY);
+			const hasX11Display = Boolean(process.env.DISPLAY);
 
-		const hasWaylandDisplay = Boolean(process.env.WAYLAND_DISPLAY);
-		const hasX11Display = Boolean(process.env.DISPLAY);
-		if (hasWaylandDisplay) {
-			try {
-				execSync("which wl-copy", { stdio: "ignore" });
-				const proc = spawn("wl-copy", [], { stdio: ["pipe", "ignore", "ignore"] });
-				proc.stdin.on("error", () => undefined);
-				proc.stdin.write(text);
-				proc.stdin.end();
-				proc.unref();
-				return;
-			} catch {
-				if (hasX11Display) {
-					copyToX11Clipboard(text);
-					return;
+			if (hasWaylandDisplay) {
+				try {
+					usedSystemClipboard = await copyToWaylandClipboard(text);
+				} catch {
+					if (hasX11Display) {
+						usedSystemClipboard = copyToX11Clipboard(text);
+					}
 				}
+			} else if (hasX11Display) {
+				usedSystemClipboard = copyToX11Clipboard(text);
 			}
 		}
-
-		if (hasX11Display) {
-			copyToX11Clipboard(text);
-		}
 	} catch {
-		// Ignore platform clipboard failures. OSC 52 was already emitted above.
+		// Prefer the explicit transport check below over leaking platform-specific command errors.
 	}
+
+	if (!usedOsc52 && !usedSystemClipboard) {
+		throw new Error("No supported clipboard transport is available in this environment.");
+	}
+
+	return { usedOsc52, usedSystemClipboard };
 };
 
 const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
@@ -145,8 +190,13 @@ const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
 	}
 
 	try {
-		await copyTextSafely(result.text);
-		ctx.ui.notify("Copied text from the most recent user message to clipboard.", "info");
+		const copyResult = await copyTextSafely(result.text, ctx);
+		ctx.ui.notify(
+			copyResult.usedSystemClipboard
+				? "Copied text from the most recent user message to clipboard."
+				: "Sent text from the most recent user message via the terminal clipboard (OSC 52).",
+			"info",
+		);
 	} catch (error) {
 		ctx.ui.notify(
 			`Failed to copy user message: ${error instanceof Error ? error.message : String(error)}`,
@@ -158,6 +208,6 @@ const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("copy-user", {
 		description: "Copy the text from the most recent user message to the clipboard",
-		handler: (_args, ctx) => copyLatestUserMessage(ctx),
+		handler: async (_args, ctx) => copyLatestUserMessage(ctx),
 	});
 }

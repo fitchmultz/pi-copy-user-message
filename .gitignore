@@ -1,0 +1,6 @@
+.DS_Store
+*.tgz
+.pi/*
+!.pi/extensions/
+.pi/extensions/*
+!.pi/extensions/copy-user-message.ts

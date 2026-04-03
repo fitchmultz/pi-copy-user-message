@@ -7,6 +7,7 @@ A tiny [pi](https://github.com/badlogic/pi-mono) extension that adds a slash com
 - Adds `/copy-user`
 - Copies the text from the most recent user message in the current session
 - Preserves line breaks between text blocks
+- Uses the system clipboard when available and a terminal OSC 52 clipboard escape in interactive TTY sessions
 - Does **not** fall back to an older message if the latest user message has no text
 
 ## Install
@@ -53,6 +54,8 @@ The command will:
 
 - Text-only by design: image-only user messages are not copied.
 - If a user message contains multiple text blocks, they are joined with newlines.
+- OSC 52 is only emitted in interactive TTY sessions, so print/RPC output stays clean.
+- If no supported clipboard transport is available, the command reports an error instead of claiming success.
 - The command is intentionally strict about “most recent” so it never copies an older user message by mistake.
 
 ## Development
