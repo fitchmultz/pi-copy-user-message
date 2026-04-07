@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.10 - 2026-04-07
+
+- keep local `tsc --noEmit` typechecking for development only
+- remove published `peerDependencies` on `@mariozechner/pi-coding-agent` to avoid noisy `pi update` peer-resolution installs and upstream deprecation warnings for consumers
+- keep the pi core package only in `devDependencies` for standalone local typecheck resolution
+
 ## 1.0.9 - 2026-04-07
 
 - add local `tsc --noEmit` typechecking via `npm run typecheck`
