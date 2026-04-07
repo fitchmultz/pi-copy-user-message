@@ -55,6 +55,7 @@ The command will:
 - Text-only by design: image-only user messages are not copied.
 - If a user message contains multiple text blocks, they are joined with newlines.
 - OSC 52 is only emitted in interactive TTY sessions, so print/RPC output stays clean.
+- On Linux-family environments, the extension tries `termux-clipboard-set`, then `wl-copy`, then X11 tools (`xclip`, then `xsel`).
 - If no supported clipboard transport is available, the command reports an error instead of claiming success.
 - The command is intentionally strict about “most recent” so it never copies an older user message by mistake.
 
@@ -70,9 +71,11 @@ The test covers:
 - latest image-only message
 - latest whitespace-only message
 - no user message at all
+- Linux clipboard fallback ordering
+- failed Wayland clipboard transport
 
 ## Files
 
 - `extensions/copy-user-message.ts` — publishable extension implementation
 - `.pi/extensions/copy-user-message.ts` — thin project-local wrapper for auto-discovery in this repo
-- `tests/copy-user-message.test.ts` — regression test
+- `tests/copy-user-message.test.ts` — regression test for message selection and clipboard fallback behavior

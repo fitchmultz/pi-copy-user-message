@@ -5,7 +5,7 @@
  * Usage: Loaded by pi as an extension package; invoke with /copy-user.
  * Invariants/Assumptions: Operates on the current branch only; copies text content only; never falls back to an older user message when the newest one has no text.
  */
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 import type { ExtensionAPI, ExtensionCommandContext, SessionEntry } from "@mariozechner/pi-coding-agent";
 
@@ -23,6 +23,15 @@ type ClipboardCopyResult = {
 	usedOsc52: boolean;
 	usedSystemClipboard: boolean;
 };
+
+type ClipboardEnvironment = {
+	platform: NodeJS.Platform;
+	termuxVersion?: string;
+	waylandDisplay?: string;
+	display?: string;
+};
+
+type ClipboardCommandRunner = (command: string, args: string[], text: string) => boolean;
 
 const CLIPBOARD_COMMAND_TIMEOUT_MS = 5000;
 
@@ -85,7 +94,7 @@ const emitOsc52Clipboard = (text: string, ctx: Pick<ExtensionCommandContext, "ha
 	return true;
 };
 
-const runClipboardCommand = (command: string, args: string[], text: string) => {
+const runClipboardCommand: ClipboardCommandRunner = (command, args, text) => {
 	execFileSync(command, args, {
 		input: text,
 		stdio: ["pipe", "ignore", "ignore"],
@@ -94,80 +103,59 @@ const runClipboardCommand = (command: string, args: string[], text: string) => {
 	return true;
 };
 
-const copyToX11Clipboard = (text: string) => {
+const tryClipboardCommand = (
+	command: string,
+	args: string[],
+	text: string,
+	commandRunner: ClipboardCommandRunner,
+) => {
 	try {
-		return runClipboardCommand("xclip", ["-selection", "clipboard"], text);
+		return commandRunner(command, args, text);
 	} catch {
-		return runClipboardCommand("xsel", ["--clipboard", "--input"], text);
+		return false;
 	}
 };
 
-const copyToWaylandClipboard = (text: string) =>
-	new Promise<boolean>((resolve, reject) => {
-		const proc = spawn("wl-copy", [], { stdio: ["pipe", "ignore", "ignore"] });
-		let settled = false;
+const copyToX11Clipboard = (text: string, commandRunner: ClipboardCommandRunner) =>
+	tryClipboardCommand("xclip", ["-selection", "clipboard"], text, commandRunner) ||
+	tryClipboardCommand("xsel", ["--clipboard", "--input"], text, commandRunner);
 
-		const succeed = () => {
-			if (settled) {
-				return;
-			}
-
-			settled = true;
-			proc.unref();
-			resolve(true);
-		};
-
-		const fail = (error: Error) => {
-			if (settled) {
-				return;
-			}
-
-			settled = true;
-			reject(error);
-		};
-
-		proc.once("error", fail);
-		proc.stdin.on("error", fail);
-		proc.stdin.end(text, succeed);
-	});
-
-const copyTextSafely = async (
+export const copyTextToSystemClipboard = (
 	text: string,
-	ctx: Pick<ExtensionCommandContext, "hasUI">,
-): Promise<ClipboardCopyResult> => {
-	const usedOsc52 = emitOsc52Clipboard(text, ctx);
-	let usedSystemClipboard = false;
-
-	try {
-		if (process.platform === "darwin") {
-			usedSystemClipboard = runClipboardCommand("pbcopy", [], text);
-		} else if (process.platform === "win32") {
-			usedSystemClipboard = runClipboardCommand("clip", [], text);
-		} else if (process.env.TERMUX_VERSION) {
-			try {
-				usedSystemClipboard = runClipboardCommand("termux-clipboard-set", [], text);
-			} catch {
-				// Fall through to Wayland/X11 tools.
-			}
-		} else {
-			const hasWaylandDisplay = Boolean(process.env.WAYLAND_DISPLAY);
-			const hasX11Display = Boolean(process.env.DISPLAY);
-
-			if (hasWaylandDisplay) {
-				try {
-					usedSystemClipboard = await copyToWaylandClipboard(text);
-				} catch {
-					if (hasX11Display) {
-						usedSystemClipboard = copyToX11Clipboard(text);
-					}
-				}
-			} else if (hasX11Display) {
-				usedSystemClipboard = copyToX11Clipboard(text);
-			}
-		}
-	} catch {
-		// Prefer the explicit transport check below over leaking platform-specific command errors.
+	environment: ClipboardEnvironment,
+	commandRunner: ClipboardCommandRunner = runClipboardCommand,
+) => {
+	if (environment.platform === "darwin") {
+		return tryClipboardCommand("pbcopy", [], text, commandRunner);
 	}
+
+	if (environment.platform === "win32") {
+		return tryClipboardCommand("clip", [], text, commandRunner);
+	}
+
+	if (environment.termuxVersion && tryClipboardCommand("termux-clipboard-set", [], text, commandRunner)) {
+		return true;
+	}
+
+	if (environment.waylandDisplay && tryClipboardCommand("wl-copy", [], text, commandRunner)) {
+		return true;
+	}
+
+	if (environment.display) {
+		return copyToX11Clipboard(text, commandRunner);
+	}
+
+	return false;
+};
+
+const copyTextSafely = (text: string, ctx: Pick<ExtensionCommandContext, "hasUI">): ClipboardCopyResult => {
+	const usedOsc52 = emitOsc52Clipboard(text, ctx);
+	const usedSystemClipboard = copyTextToSystemClipboard(text, {
+		platform: process.platform,
+		termuxVersion: process.env.TERMUX_VERSION,
+		waylandDisplay: process.env.WAYLAND_DISPLAY,
+		display: process.env.DISPLAY,
+	});
 
 	if (!usedOsc52 && !usedSystemClipboard) {
 		throw new Error("No supported clipboard transport is available in this environment.");
@@ -176,7 +164,7 @@ const copyTextSafely = async (
 	return { usedOsc52, usedSystemClipboard };
 };
 
-const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
+const copyLatestUserMessage = (ctx: ExtensionCommandContext) => {
 	const result = getMostRecentUserMessageText(ctx.sessionManager.getBranch());
 
 	if (result.kind === "no-user-message") {
@@ -190,7 +178,7 @@ const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
 	}
 
 	try {
-		const copyResult = await copyTextSafely(result.text, ctx);
+		const copyResult = copyTextSafely(result.text, ctx);
 		ctx.ui.notify(
 			copyResult.usedSystemClipboard
 				? "Copied text from the most recent user message to clipboard."
@@ -208,6 +196,8 @@ const copyLatestUserMessage = async (ctx: ExtensionCommandContext) => {
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("copy-user", {
 		description: "Copy the text from the most recent user message to the clipboard",
-		handler: async (_args, ctx) => copyLatestUserMessage(ctx),
+		handler: async (_args, ctx) => {
+			copyLatestUserMessage(ctx);
+		},
 	});
 }

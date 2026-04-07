@@ -5,5 +5,5 @@
  * Usage: Auto-discovered by pi when running inside this repository.
  * Invariants/Assumptions: Keeps local development auto-discovery aligned with the publishable package entrypoint.
  */
-export { getMostRecentUserMessageText } from "../../extensions/copy-user-message.ts";
+export { copyTextToSystemClipboard, getMostRecentUserMessageText } from "../../extensions/copy-user-message.ts";
 export { default } from "../../extensions/copy-user-message.ts";
