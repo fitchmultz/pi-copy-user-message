@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 20
+          - 22
+          - 24
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: npm run check
+
+      - name: Verify package contents
+        run: npm pack --dry-run
+
+  install-smoke:
+    runs-on: ubuntu-latest
+    needs: check
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pack tarball
+        run: npm pack --pack-destination .artifacts
+
+      - name: Smoke test tarball and folder installs
+        run: |
+          set -euo pipefail
+          TARBALL=$(echo .artifacts/*.tgz)
+          TMPDIR=$(mktemp -d)
+
+          mkdir -p "$TMPDIR/tarball-consumer" "$TMPDIR/folder-consumer"
+
+          cd "$TMPDIR/tarball-consumer"
+          npm init -y >/dev/null 2>&1
+          npm install --ignore-scripts "$GITHUB_WORKSPACE/$TARBALL"
+          node -e "const pkg = require('./node_modules/pi-copy-user-message/package.json'); if (pkg.name !== 'pi-copy-user-message') throw new Error('tarball install failed')"
+
+          cd "$TMPDIR/folder-consumer"
+          npm init -y >/dev/null 2>&1
+          npm install --ignore-scripts "$GITHUB_WORKSPACE"
+          node -e "const pkg = require('./node_modules/pi-copy-user-message/package.json'); if (pkg.name !== 'pi-copy-user-message') throw new Error('folder install failed')"

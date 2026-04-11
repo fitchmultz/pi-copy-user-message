@@ -3,7 +3,12 @@
  * Responsibilities: Re-export the package extension implementation from the conventional public package path.
  * Scope: Thin local wrapper only; all behavior lives in ../../extensions/copy-user-message.ts.
  * Usage: Auto-discovered by pi when running inside this repository.
- * Invariants/Assumptions: Keeps local development auto-discovery aligned with the publishable package entrypoint.
+ * Invariants/Assumptions: Keeps local development auto-discovery aligned with the publishable package entrypoint and named helper exports.
  */
-export { copyTextToSystemClipboard, getMostRecentUserMessageText } from "../../extensions/copy-user-message.ts";
+export {
+	copyTextToSystemClipboard,
+	emitOsc52Clipboard,
+	getMostRecentUserMessageText,
+	registerCopyUserCommand,
+} from "../../extensions/copy-user-message.ts";
 export { default } from "../../extensions/copy-user-message.ts";

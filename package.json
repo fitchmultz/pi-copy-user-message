@@ -1,10 +1,13 @@
 {
   "name": "pi-copy-user-message",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "pi extension that adds /copy-user to copy the most recent user message to your clipboard",
   "author": "Mitch Fultz (https://github.com/fitchmultz)",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "keywords": [
     "pi-package",
     "pi",
@@ -22,7 +25,7 @@
   },
   "homepage": "https://github.com/fitchmultz/pi-copy-user-message#readme",
   "scripts": {
-    "test": "node --experimental-strip-types tests/copy-user-message.test.ts",
+    "test": "tsx tests/copy-user-message.test.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm test && npm run typecheck",
     "prepublishOnly": "npm run check && npm pack --dry-run"
@@ -36,7 +39,11 @@
   "devDependencies": {
     "@mariozechner/pi-coding-agent": "^0.65.2",
     "@types/node": "^24.6.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "basic-ftp": "^5.2.2"
   },
   "pi": {
     "extensions": [

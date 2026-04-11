@@ -8,6 +8,7 @@ A tiny [pi](https://github.com/badlogic/pi-mono) extension that adds a slash com
 - Copies the text from the most recent user message in the current session
 - Preserves line breaks between text blocks
 - Uses the system clipboard when available and a terminal OSC 52 clipboard escape in interactive TTY sessions
+- Avoids synchronous clipboard subprocesses in the `/copy-user` command path
 - Does **not** fall back to an older message if the latest user message has no text
 
 ## Install
@@ -36,6 +37,14 @@ If you prefer to load it directly from a local checkout during development, you 
 pi -e ./extensions/copy-user-message.ts
 ```
 
+## Compatibility
+
+- Tested with [pi](https://github.com/badlogic/pi-mono) 0.65.x
+- Minimum Node.js for local repo tooling: `>=20.6.0`
+- `.nvmrc` pins Node 22 for local development; CI also verifies Node 20.x, 22.x, and 24.x
+
+This package keeps `@mariozechner/pi-coding-agent` as a development dependency for local typechecking and tests, but it is intended to run inside pi's bundled extension runtime.
+
 ## Usage
 
 Once loaded, run:
@@ -55,6 +64,7 @@ The command will:
 - Text-only by design: image-only user messages are not copied.
 - If a user message contains multiple text blocks, they are joined with newlines.
 - OSC 52 is only emitted in interactive TTY sessions, so print/RPC output stays clean.
+- Clipboard command fallbacks run asynchronously so the slash-command path does not block the TUI event loop while utilities resolve or time out.
 - On Linux-family environments, the extension tries `termux-clipboard-set`, then `wl-copy`, then X11 tools (`xclip`, then `xsel`).
 - If no supported clipboard transport is available, the command reports an error instead of claiming success.
 - The command is intentionally strict about “most recent” so it never copies an older user message by mistake.
@@ -71,11 +81,15 @@ The test covers:
 - latest image-only message
 - latest whitespace-only message
 - no user message at all
+- actual `/copy-user` command success, warning, and error paths
+- OSC 52 emission
 - Linux clipboard fallback ordering
-- failed Wayland clipboard transport
+- X11 `xsel` fallback after `xclip`
+- macOS `pbcopy` and Windows `clip` transport selection
+- failed or unsupported clipboard transport cases
 
 ## Files
 
 - `extensions/copy-user-message.ts` — publishable extension implementation
 - `.pi/extensions/copy-user-message.ts` — thin project-local wrapper for auto-discovery in this repo
-- `tests/copy-user-message.test.ts` — regression test for message selection and clipboard fallback behavior
+- `tests/copy-user-message.test.ts` — regression test for message selection, `/copy-user` command behavior, and clipboard transport fallbacks
