@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.12 - 2026-04-15
+
+- refresh the local test/typecheck toolchain to `@mariozechner/pi-coding-agent` `0.67.2`, `tsx` `4.21.0`, `typescript` `6.0.2`, and `@types/node` `25.6.0`
+- declare `packageManager: npm@11.12.1` in package metadata and refresh the lockfile to the current stable development baseline
+
 ## 1.0.11 - 2026-04-11
 
 - make clipboard subprocess execution non-blocking and add handler-level regression coverage for `/copy-user`
