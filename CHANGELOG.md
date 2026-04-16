@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- update the local pi development baseline to `@mariozechner/pi-coding-agent` `0.67.4`
+- align `packageManager` metadata to `npm@10.9.8`, the latest stable npm line compatible with the declared Node runtime floor
+
 ## 1.0.12 - 2026-04-15
 
 - refresh the local test/typecheck toolchain to `@mariozechner/pi-coding-agent` `0.67.2`, `tsx` `4.21.0`, `typescript` `6.0.2`, and `@types/node` `25.6.0`

@@ -39,7 +39,7 @@ pi -e ./extensions/copy-user-message.ts
 
 ## Compatibility
 
-- Tested with [pi](https://github.com/badlogic/pi-mono) 0.65.x
+- Tested with [pi](https://github.com/badlogic/pi-mono) 0.67.4
 - Minimum Node.js for local repo tooling: `>=20.6.0`
 - `.nvmrc` pins Node 22 for local development; CI also verifies Node 20.x, 22.x, and 24.x
 

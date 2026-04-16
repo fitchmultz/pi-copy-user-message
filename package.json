@@ -37,7 +37,7 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@mariozechner/pi-coding-agent": "^0.67.2",
+    "@mariozechner/pi-coding-agent": "^0.67.4",
     "@types/node": "^25.6.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
@@ -50,5 +50,5 @@
       "./extensions"
     ]
   },
-  "packageManager": "npm@11.12.1"
+  "packageManager": "npm@10.9.8"
 }
