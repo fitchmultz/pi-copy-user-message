@@ -1,6 +1,6 @@
 {
   "name": "pi-copy-user-message",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "pi extension that adds /copy-user to copy the most recent user message to your clipboard",
   "author": "Mitch Fultz (https://github.com/fitchmultz)",
   "license": "MIT",
@@ -37,7 +37,7 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@mariozechner/pi-coding-agent": "^0.69.0",
+    "@mariozechner/pi-coding-agent": "^0.70.0",
     "@types/node": "^25.6.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
