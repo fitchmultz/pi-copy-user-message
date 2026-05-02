@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.0.17 - 2026-05-01
+
+- updated the local pi development baseline to `@mariozechner/pi-coding-agent` `0.72.0`
+- regenerated the npm lockfile against the current stable dependency graph
+- aligned pi core peer metadata with current pi package guidance
+- reviewed the pi `0.72.0` changelog and confirmed the extension does not use custom provider model thinking metadata or affected provider APIs
+
+
 ## 1.0.16 - 2026-05-01
 
 - updated the local pi development baseline to `@mariozechner/pi-coding-agent` `0.71.1`
