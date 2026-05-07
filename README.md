@@ -39,11 +39,11 @@ pi -e ./extensions/copy-user-message.ts
 
 ## Compatibility
 
-- Tested with [pi](https://github.com/badlogic/pi-mono) 0.72.0
+- Tested with [pi](https://github.com/earendil-works/pi-mono) 0.74.0
 - Minimum Node.js for local repo tooling: `>=20.6.0`
 - `.nvmrc` pins Node 22 for local development; CI also verifies Node 20.x, 22.x, and 24.x
 
-This package keeps `@mariozechner/pi-coding-agent` as a development dependency for local typechecking and tests and declares pi core packages as wildcard peers per current pi package guidance; it is intended to run inside pi's bundled extension runtime.
+This package keeps `@earendil-works/pi-coding-agent` as a development dependency for local typechecking and tests and declares pi core packages as wildcard peers per current pi package guidance; it is intended to run inside pi's bundled extension runtime.
 
 ## Usage
 

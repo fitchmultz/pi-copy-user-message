@@ -7,7 +7,7 @@
  */
 import assert from "node:assert/strict";
 
-import type { ExtensionAPI, ExtensionCommandContext, SessionEntry } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, SessionEntry } from "@earendil-works/pi-coding-agent";
 
 import extension, {
 	copyTextToSystemClipboard,

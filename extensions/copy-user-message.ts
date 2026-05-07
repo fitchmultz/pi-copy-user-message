@@ -7,7 +7,7 @@
  */
 import { spawn } from "node:child_process";
 
-import type { ExtensionAPI, ExtensionCommandContext, SessionEntry } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, SessionEntry } from "@earendil-works/pi-coding-agent";
 
 type TextBlock = {
 	type?: string;
