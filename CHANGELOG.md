@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.19 - 2026-05-18
+
+- updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.75.3` and refreshed the npm lockfile
+- raised the local Node.js tooling floor to `>=22.19.0`, updated `.nvmrc`, and refreshed CI to validate Node 22/24/26
+- removed legacy Ralph task metadata and ignored local `.cueloop/` runtime state
+
+
 ## 1.0.18 - 2026-05-07
 
 - migrated the local pi development baseline and peer metadata from deprecated `@mariozechner/*` packages to maintained `@earendil-works/*` `0.74.0`
