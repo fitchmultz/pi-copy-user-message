@@ -5,3 +5,6 @@ node_modules/
 !.pi/extensions/
 .pi/extensions/*
 !.pi/extensions/copy-user-message.ts
+
+# CueLoop local/runtime state (do not commit)
+.cueloop/
