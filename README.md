@@ -39,7 +39,7 @@ pi -e ./extensions/copy-user-message.ts
 
 ## Compatibility
 
-- Tested with [pi](https://github.com/earendil-works/pi-mono) 0.75.4
+- Tested with [pi](https://github.com/earendil-works/pi-mono) 0.76.0
 - Minimum Node.js for local repo tooling: `>=22.19.0`
 - `.nvmrc` pins Node 22.19.0 for local development; CI also verifies Node 22.x, 24.x, and 26.x
 

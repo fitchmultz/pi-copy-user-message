@@ -57,7 +57,9 @@ jobs:
         run: npm ci
 
       - name: Pack tarball
-        run: npm pack --pack-destination .artifacts
+        run: |
+          mkdir -p .artifacts
+          npm pack --pack-destination .artifacts
 
       - name: Smoke test tarball and folder installs
         run: |
