@@ -37,7 +37,7 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.75.5",
+    "@earendil-works/pi-coding-agent": "^0.76.0",
     "@types/node": "^25.9.1",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
