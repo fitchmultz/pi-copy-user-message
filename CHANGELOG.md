@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.23 - 2026-05-29
+
+- updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.78.0` and regenerated the npm lockfile
+- aligned the package manager and Node.js metadata with the current pi 0.78.0 fleet support range
+- reviewed the pi 0.78.0 changelog; the `/copy-user` command remains compatible with current command, session branch, and clipboard behavior
+
 ## 1.0.22 - 2026-05-28
 
 - updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.77.0` and regenerated the npm lockfile
