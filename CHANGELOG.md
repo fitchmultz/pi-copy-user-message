@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.23 - 2026-05-29
+
+- updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.78.0` and regenerated the npm lockfile
+- reviewed the pi `0.78.0` changelog; the extension remains compatible with current command and clipboard behavior
+
 ## 1.0.22 - 2026-05-28
 
 - updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.77.0` and regenerated the npm lockfile
