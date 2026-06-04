@@ -39,8 +39,8 @@ pi -e ./extensions/copy-user-message.ts
 
 ## Compatibility
 
-- Tested with [pi](https://github.com/earendil-works/pi-mono) 0.78.0
-- Supported Node.js range for local repo tooling: `>=22 <25`
+- Tested with [pi](https://github.com/earendil-works/pi-mono) 0.78.1
+- Supported Node.js range for local repo tooling: `>=22.19.0`
 - `.nvmrc` pins Node 22.19.0 for local development; CI verifies Node 22.x and 24.x
 
 This package keeps `@earendil-works/pi-coding-agent` as a development dependency for local typechecking and tests and declares pi core packages as optional wildcard peers per current pi package guidance. That keeps installs forward-open for future pi releases: npm peer ranges should not block users from trying a newer pi, though runtime behavior is only verified against the tested baseline until a follow-up package release confirms it.

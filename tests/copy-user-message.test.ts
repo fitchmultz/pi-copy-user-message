@@ -67,7 +67,7 @@ const registerCommandUnderTest = (copyText: Parameters<typeof registerCopyUserCo
 const createCommandContext = (entries: SessionEntry[]) => {
 	const notifications: Array<{ message: string; type: string | undefined }> = [];
 	const ctx = {
-		hasUI: true,
+		mode: "tui",
 		sessionManager: {
 			getBranch: () => entries,
 		},
@@ -140,9 +140,9 @@ assert.deepEqual(noUserMessageResult, { kind: "no-user-message" });
 	}) as typeof process.stdout.write;
 
 	try {
-		assert.equal(emitOsc52Clipboard("hello", { hasUI: true }), true);
+		assert.equal(emitOsc52Clipboard("hello", { mode: "tui" }), true);
 		assert.deepEqual(writes, ["\u001b]52;c;aGVsbG8=\u0007"]);
-		assert.equal(emitOsc52Clipboard("hello", { hasUI: false }), false);
+		assert.equal(emitOsc52Clipboard("hello", { mode: "rpc" }), false);
 	} finally {
 		process.stdout.write = originalWrite;
 		process.env.TERM = originalTerm;
@@ -151,9 +151,9 @@ assert.deepEqual(noUserMessageResult, { kind: "no-user-message" });
 }
 
 {
-	const copyCalls: Array<{ text: string; hasUI: boolean }> = [];
+	const copyCalls: Array<{ text: string; inTuiMode: boolean }> = [];
 	const command = registerCommandUnderTest(async (text, ctx) => {
-		copyCalls.push({ text, hasUI: ctx.hasUI });
+		copyCalls.push({ text, inTuiMode: ctx.mode === "tui" });
 		return { usedOsc52: false, usedSystemClipboard: true };
 	});
 	const { ctx, notifications } = createCommandContext([
@@ -161,7 +161,7 @@ assert.deepEqual(noUserMessageResult, { kind: "no-user-message" });
 		userMessage([{ type: "text", text: "latest text" }]),
 	]);
 	await command.handler("", ctx);
-	assert.deepEqual(copyCalls, [{ text: "latest text", hasUI: true }]);
+	assert.deepEqual(copyCalls, [{ text: "latest text", inTuiMode: true }]);
 	assert.deepEqual(notifications, [
 		{ message: "Copied text from the most recent user message to clipboard.", type: "info" },
 	]);

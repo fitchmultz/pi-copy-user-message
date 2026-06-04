@@ -34,7 +34,7 @@ type ClipboardEnvironment = {
 type ClipboardCommandRunner = (command: string, args: string[], text: string) => Promise<boolean>;
 type CopyTextFunction = (
 	text: string,
-	ctx: Pick<ExtensionCommandContext, "hasUI">,
+	ctx: Pick<ExtensionCommandContext, "mode">,
 ) => Promise<ClipboardCopyResult>;
 
 const CLIPBOARD_COMMAND_TIMEOUT_MS = 5000;
@@ -85,10 +85,10 @@ export const getMostRecentUserMessageText = (entries: SessionEntry[]): MostRecen
 	return { kind: "no-user-message" };
 };
 
-const canUseOsc52Clipboard = (ctx: Pick<ExtensionCommandContext, "hasUI">) =>
-	ctx.hasUI && Boolean(process.stdout.isTTY) && process.env.TERM !== "dumb";
+const canUseOsc52Clipboard = (ctx: Pick<ExtensionCommandContext, "mode">) =>
+	ctx.mode === "tui" && Boolean(process.stdout.isTTY) && process.env.TERM !== "dumb";
 
-export const emitOsc52Clipboard = (text: string, ctx: Pick<ExtensionCommandContext, "hasUI">) => {
+export const emitOsc52Clipboard = (text: string, ctx: Pick<ExtensionCommandContext, "mode">) => {
 	if (!canUseOsc52Clipboard(ctx)) {
 		return false;
 	}

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.24 - 2026-06-04
+
+- updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.78.1` and regenerated the npm lockfile
+- adopted the new extension `ctx.mode` API so `/copy-user` only emits OSC 52 clipboard escapes in real TUI sessions instead of relying on broader UI availability
+- refreshed package metadata for the current Node/npm tooling floor while keeping pi core packages as optional wildcard peers so Pi 0.78.1 is a tested baseline, not a hard runtime pin
+
 ## 1.0.23 - 2026-05-29
 
 - updated the local pi development baseline to `@earendil-works/pi-coding-agent` `0.78.0` and regenerated the npm lockfile
