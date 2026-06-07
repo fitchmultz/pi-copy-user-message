@@ -1,5 +1,7 @@
 # pi copy-user extension
 
+> Deprecated: use [`pi-copy-message`](https://github.com/fitchmultz/pi-copy-message) instead. It provides a searchable picker for copying raw user, assistant, and tool messages.
+
 A tiny [pi](https://github.com/badlogic/pi-mono) extension that adds a slash command for copying the **most recent user message** to your clipboard.
 
 ## What it does

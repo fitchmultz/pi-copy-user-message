@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.25 - 2026-06-07
+
+- Mark package as deprecated in favor of `pi-copy-message`.
+
+
 ## Unreleased
 
 ## 1.0.24 - 2026-06-04
